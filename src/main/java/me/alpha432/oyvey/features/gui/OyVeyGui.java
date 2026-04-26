@@ -20,6 +20,14 @@ public class OyVeyGui extends Screen {
     private static OyVeyGui INSTANCE;
     private static Color colorClipboard = null;
 
+    // Duck Inc branding
+    private static final String DUCK_WATERMARK = "\uD83E\uDD86 Duck Inc";  // 🦆 Duck Inc
+
+    // Duck theme colors
+    private static final Color DUCK_BG       = new Color(0,   0,   0,   120); // same dark overlay
+    private static final Color DUCK_ACCENT   = new Color(255, 200, 0,   180); // duck yellow
+    private static final Color DUCK_ACCENT2  = new Color(230, 120, 0,   200); // duck orange
+
     static {
         INSTANCE = new OyVeyGui();
     }
@@ -27,7 +35,7 @@ public class OyVeyGui extends Screen {
     private final ArrayList<Widget> widgets = new ArrayList<>();
 
     public OyVeyGui() {
-        super(Component.literal("OyVey"));
+        super(Component.literal(DUCK_WATERMARK));  // title bar now says 🦆 Duck Inc
         setInstance();
         load();
     }
@@ -51,7 +59,8 @@ public class OyVeyGui extends Screen {
         int x = -84;
         for (Module.Category category : OyVey.moduleManager.getCategories()) {
             if (category == Module.Category.HUD) continue;
-            Widget panel = new Widget(category.getName(), x += 90, 4, true);
+            // Prefix each panel header with the duck emoji
+            Widget panel = new Widget("\uD83E\uDD86 " + category.getName(), x += 90, 4, true);
             OyVey.moduleManager.stream()
                     .filter(m -> m.getCategory() == category && !m.hidden)
                     .map(ModuleButton::new)
@@ -64,8 +73,22 @@ public class OyVeyGui extends Screen {
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         Item.context = context;
-        context.fill(0, 0, context.guiWidth(), context.guiHeight(), new Color(0, 0, 0, 120).hashCode());
+
+        // Duck-tinted background overlay (same structure, yellow-tinted instead of pure black)
+        context.fill(0, 0, context.guiWidth(), context.guiHeight(), DUCK_BG.hashCode());
+
+        // Draw a subtle duck-yellow gradient strip across the top as a header bar
+        context.fill(0, 0, context.guiWidth(), 3, DUCK_ACCENT2.hashCode());
+        context.fill(0, 0, context.guiWidth(), 1, DUCK_ACCENT.hashCode());
+
         this.widgets.forEach(components -> components.drawScreen(context, mouseX, mouseY, delta));
+
+        // Draw "🦆 Duck Inc" watermark in the bottom-right corner
+        int wmX = context.guiWidth()  - mc.font.width(DUCK_WATERMARK) - 4;
+        int wmY = context.guiHeight() - mc.font.lineHeight - 4;
+        context.fill(wmX - 3, wmY - 2, wmX + mc.font.width(DUCK_WATERMARK) + 3, wmY + mc.font.lineHeight + 2,
+                new Color(0, 0, 0, 140).hashCode());
+        context.drawString(mc.font, DUCK_WATERMARK, wmX, wmY, DUCK_ACCENT.hashCode());
     }
 
     @Override
@@ -106,9 +129,10 @@ public class OyVeyGui extends Screen {
     public boolean isPauseScreen() {
         return false;
     }
+
     @Override
     public void renderBackground(GuiGraphics context, int mouseX, int mouseY, float delta) {
-    }//ignore 1.21.8 blur thing
+    } // ignore 1.21.8 blur thing
 
     public final ArrayList<Widget> getComponents() {
         return this.widgets;
